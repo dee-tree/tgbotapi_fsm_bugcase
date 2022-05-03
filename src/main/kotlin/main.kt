@@ -27,14 +27,14 @@ fun main(args: Array<String>) {
             scope = CoroutineScope(Dispatchers.IO)
         ) {
 
-            strictlyOn<AState>() {
+            strictlyOn<AState>() { state ->
 
-                sendMessage(it.context, "Hello A")
-                val msg = waitText().first()
+                sendMessage(state.context, "Hello A")
+                val msg = waitText(filter = { it.chat.id == state.context }).first()
 
                 when {
-                    msg.text == "go to b" -> BState(it.context)
-                    else -> it
+                    msg.text == "go to b" -> BState(state.context)
+                    else -> state
                 }
 
             }
