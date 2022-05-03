@@ -1,5 +1,6 @@
 import dev.inmo.micro_utils.fsm.common.State
 import dev.inmo.micro_utils.fsm.common.managers.DefaultStatesManager
+import dev.inmo.micro_utils.fsm.common.managers.InMemoryDefaultStatesManagerRepo
 import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.expectations.waitText
 import dev.inmo.tgbotapi.extensions.behaviour_builder.telegramBotWithBehaviourAndFSMAndStartLongPolling
@@ -20,21 +21,22 @@ fun main(args: Array<String>) {
 
     runBlocking {
 
-        val statesManager = DefaultStatesManager<CommonState>()
+        val repo = InMemoryDefaultStatesManagerRepo<CommonState>()
+        val statesManager = DefaultStatesManager<CommonState>(repo)
         telegramBotWithBehaviourAndFSMAndStartLongPolling<CommonState>(
             botToken,
             statesManager = statesManager,
             scope = CoroutineScope(Dispatchers.IO)
         ) {
 
-            strictlyOn<AState>() {
+            strictlyOn<AState>() { state ->
 
-                sendMessage(it.context, "Hello A")
-                val msg = waitText().first()
+                sendMessage(state.context, "Hello A")
+                val msg = waitText(filter = { it.chat.id == state.context }).first()
 
                 when {
-                    msg.text == "go to b" -> BState(it.context)
-                    else -> it
+                    msg.text == "go to b" -> BState(state.context)
+                    else -> state
                 }
 
             }
@@ -45,7 +47,8 @@ fun main(args: Array<String>) {
                 it
             }
 
-            onCommand("start") {
+            // initial filter here: trigger lambda only if the user's state is null
+            onCommand("start", initialFilter = { repo.getContextState(it.chat.id) == null }) {
                 startChain(AState(it.chat.id))
             }
         }.second.join()

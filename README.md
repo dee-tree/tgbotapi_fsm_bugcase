@@ -3,6 +3,7 @@
 1. in [gradle build script file](build.gradle.kts) paste inside "run" task in args token of your bot.
 2. execute "gradle run"
 
+### Bug 2: "FSM no answers"
 
 ### What sould I do?
 
@@ -12,17 +13,25 @@ What happened?
 * Bot jumps from null to AState for u1.
 * Bot sends u1 "Hello A"
 
-2. Account u2 writes the bot: /start.
+2. User u2 writes the bot: /start.
 
 What happened?
 * Bot jumps from null to AState for u2.
-* Bot sends u1 "Hello A"
 * Bot sends u2 "Hello A"
 
+(2.1 User u2 can write the bot anything and correctly jump states)
 
-3. You can write bot anything from both u1 and u2 (no matter) and get answer in AState for u1 and u2 
-at the same moment
+3. User u1 writes the bot anything (for example "lol") to stay on AState
+
+What happened?
+* Bot does not answer u1 (lambda in strictlyOn<ASTate> not called) <<< **IT'S BUG**!
+
+(optionally)
+3+. u1 / u2 writes the bot anything to stay at AState.
+
+What happened?
+* Bot does not answer anybody! <<< **IT'S BUG**!
 
 ---
 * BState here no matter
-* Expected behaviour for 2: bot will send answer only for u2
+* Expected behaviour for 3: bot will send answer for u1
